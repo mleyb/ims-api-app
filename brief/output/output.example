@@ -1,0 +1,8 @@
+{
+    "CustomerId": <the customer id from the input>,
+    "VIN": <the VIN of the vehicle>
+    "Make": <the vehicle make, eg: Ford>,
+    "Model": <the vehicle model, eg: Cortina>,
+    "ModelYear": <the year the vehicle was manufactured, eg: 1982>,
+    "ImportedDate": <the date at which the VIN was originally imported>
+}

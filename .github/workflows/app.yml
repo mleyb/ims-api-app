@@ -1,0 +1,41 @@
+name: App
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Build and deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build
+
+    - name: Run tests
+      run: dotnet test
+
+    - name: Publish Get handler package
+      run: (cd ./src/Handlers/Get && sudo chmod +x ./build.sh && sudo ./build.sh)
+
+    - name: Publish Import handler package
+      run: (cd ./src/Handlers/Import && sudo chmod +x ./build.sh && sudo ./build.sh)
+
+    - name: Serverless
+      uses: serverless/github-action@master
+      with:
+        args: deploy
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

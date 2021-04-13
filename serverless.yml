@@ -1,0 +1,59 @@
+service: ims-api-app
+# app and org for use with dashboard.serverless.com
+#app: your-app-name
+#org: your-org-name
+
+frameworkVersion: '2'
+
+provider:
+  name: aws
+  runtime: dotnetcore3.1
+  lambdaHashingVersion: 20201221
+
+#  stage: dev
+  region: eu-west-1
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+      - dynamodb:*
+      Resource: "*"
+
+  environment:
+    table: IMS.VehicleData
+
+package:
+  individually: true
+
+functions:
+  get:
+    handler: IMS.VIN.API.Handlers.Get::Get.GetHandler::HandleRequestAsync
+    package:
+      artifact: src/Handlers/Get/bin/Release/netcoreapp3.1/package.zip
+    events:
+      - httpApi:
+          path: /vin/{id}
+          method: get
+
+  import:
+    handler: IMS.VIN.API.Handlers.Import::Import.ImportHandler::HandleRequestAsync
+    package:
+      artifact: src/Handlers/Import/bin/Release/netcoreapp3.1/package.zip
+    events:
+      - httpApi:
+          path: /vin
+          method: post
+
+resources:
+  Resources:
+    VehicleDataDynamoDBTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: Id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: Id
+            KeyType: HASH
+        TableName: IMS.VehicleData
