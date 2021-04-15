@@ -11,7 +11,7 @@ namespace Get
 
     public class VehicleDataTable : IVehicleDataTable
     {
-        private const string TableName = "IMS.VehicleData";
+        private const string TableName = "IMS.VehicleData"; // TODO - get from env
 
         private readonly IDynamoDBContext _db;
 

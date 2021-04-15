@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		.npmignore = .npmignore
-		build.cmd = build.cmd
+		build-and-deploy.cmd = build-and-deploy.cmd
 		destroy.cmd = destroy.cmd
 		serverless.yml = serverless.yml
 	EndProjectSection
@@ -20,7 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{D61F
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{5C244448-7ECF-4EC5-B9DE-299B6642342A}"
 	ProjectSection(SolutionItems) = preProject
-		.github\workflows\app.yml = .github\workflows\app.yml
+		.github\workflows\ci.yml = .github\workflows\ci.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D4128CD6-CF0F-4AF1-AA48-EFC43A93400D}"
@@ -29,9 +29,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Get", "src\Handlers\Get\Get
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Import", "src\Handlers\Import\Import.csproj", "{87F6E14C-2FAE-4214-8015-C0692E35BB22}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Get.Tests", "test\Get.Tests\Get.Tests.csproj", "{688C3247-F535-4263-92C8-BD6E8ED3987B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Get.Tests", "test\Get.Tests\Get.Tests.csproj", "{688C3247-F535-4263-92C8-BD6E8ED3987B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Import.Tests", "test\Import.Tests\Import.Tests.csproj", "{5ACAA0E2-F92A-422B-A7DB-470101107C32}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Import.Tests", "test\Import.Tests\Import.Tests.csproj", "{5ACAA0E2-F92A-422B-A7DB-470101107C32}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

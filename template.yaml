@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  SAM Template for ims-api-app
+
+Parameters:
+  TableName:
+    Type: String
+    Default: IMS.VehicleData
+    Description: The table name
+
+Globals:
+  Function:
+    Runtime: dotnetcore3.1
+    MemorySize: 256
+    Timeout: 30
+
+Resources:
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: dev
+
+  GetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./src/Handlers/Get/
+      Handler: IMS.VIN.API.Handlers.Get::Get.GetHandler::HandleRequestAsync
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref VehicleDataDynamoDBTable
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+      Events:
+        Get:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /vin/{id}
+            Method: get
+
+  ImportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./src/Handlers/Import/
+      Handler: IMS.VIN.API.Handlers.Import::Import.ImportHandler::HandleRequestAsync
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref VehicleDataDynamoDBTable
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref TableName
+      Events:
+        Get:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /vin
+            Method: post
+
+  VehicleDataDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: Id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: Id
+          KeyType: HASH
+      TableName: !Ref TableName

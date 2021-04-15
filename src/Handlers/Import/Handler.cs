@@ -34,6 +34,13 @@ namespace Import
 
             ImportRequest requestBody = JsonConvert.DeserializeObject<ImportRequest>(request.Body);
 
+            IValidateVIN validateVIN = _sp.GetRequiredService<IValidateVIN>();
+
+            if (!validateVIN.IsValid(requestBody.VIN))
+            {
+                return APIGatewayProxyResponses.BadRequest();
+            }
+
             IVehicleDataService dataService = _sp.GetRequiredService<IVehicleDataService>();
 
             await dataService.ImportVehicleDataAsync(requestBody.CustomerId, requestBody.VIN);
@@ -48,6 +55,7 @@ namespace Import
             services.AddTransient<IVPICHttpClient, VPICHttpClient>();
             services.AddTransient<IVehicleDataLookupResponseParser, VehicleDataLookupResponseParser>();
             services.AddTransient<IVehicleDataTable, VehicleDataTable>();
+            services.AddTransient<IValidateVIN, VINValidator>();
 
             services.AddSingleton<IDynamoDBContext, DynamoDBContext>(sp => new DynamoDBContext(new AmazonDynamoDBClient()));
         }

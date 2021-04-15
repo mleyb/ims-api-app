@@ -36,6 +36,11 @@ namespace Get
         {
             VehicleDataTableItem item = await _table.LoadAsync(vin);
 
+            if (item == null)
+            {
+                return null;
+            }
+
             var data = new VehicleData
             {
                 VIN = item.VIN,

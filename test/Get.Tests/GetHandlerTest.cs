@@ -30,10 +30,14 @@ namespace Get.Tests
                 ImportedDate = DateTime.UtcNow
             };
 
+            var fakeValidateVIN = A.Fake<IValidateVIN>();
+            A.CallTo(() => fakeValidateVIN.IsValid(vin)).Returns(true);
+
             var fakeVehicleDataService = A.Fake<IVehicleDataService>();
             A.CallTo(() => fakeVehicleDataService.GetVehicleDataAsync(vin)).Returns(data);
 
             IServiceProvider sp = new ServiceCollection()
+                .AddSingleton(fakeValidateVIN)
                 .AddSingleton(fakeVehicleDataService)
                 .BuildServiceProvider();
 
@@ -73,10 +77,14 @@ namespace Get.Tests
                 ImportedDate = DateTime.UtcNow
             };
 
+            var fakeValidateVIN = A.Fake<IValidateVIN>();
+            A.CallTo(() => fakeValidateVIN.IsValid(vin)).Returns(true);
+
             var fakeVehicleDataService = A.Fake<IVehicleDataService>();
             A.CallTo(() => fakeVehicleDataService.GetVehicleDataAsync(vin)).Returns(data);
 
             IServiceProvider sp = new ServiceCollection()
+                .AddSingleton(fakeValidateVIN)
                 .AddSingleton(fakeVehicleDataService)
                 .BuildServiceProvider();
 
@@ -113,10 +121,14 @@ namespace Get.Tests
 
             const string vin = "VIN";
 
+            var fakeValidateVIN = A.Fake<IValidateVIN>();
+            A.CallTo(() => fakeValidateVIN.IsValid(vin)).Returns(true);
+
             var fakeVehicleDataService = A.Fake<IVehicleDataService>();
             A.CallTo(() => fakeVehicleDataService.GetVehicleDataAsync(vin)).Returns<VehicleData>(null);
 
             IServiceProvider sp = new ServiceCollection()
+                .AddSingleton(fakeValidateVIN)
                 .AddSingleton(fakeVehicleDataService)
                 .BuildServiceProvider();
 
@@ -137,6 +149,42 @@ namespace Get.Tests
             // Assert
 
             Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+        }
+
+        [Fact]
+        public async Task HandleRequestAsync_VINValidationFails_ReturnsBadRequestResponse()
+        {
+            // Arrange
+
+            const string vin = "VIN";
+
+            var fakeValidateVIN = A.Fake<IValidateVIN>();
+            A.CallTo(() => fakeValidateVIN.IsValid(vin)).Returns(false);
+
+            var fakeVehicleDataService = A.Fake<IVehicleDataService>();
+
+            IServiceProvider sp = new ServiceCollection()
+                .AddSingleton(fakeValidateVIN)
+                .AddSingleton(fakeVehicleDataService)
+                .BuildServiceProvider();
+
+            var context = A.Fake<ILambdaContext>();
+            A.CallTo(() => context.Logger).Returns(A.Fake<ILambdaLogger>());
+
+            APIGatewayProxyRequest dummyRequestEvent = new APIGatewayProxyRequest
+            {
+                PathParameters = new Dictionary<string, string> { { "id", vin } }
+            };
+
+            var sut = new GetHandler(sp);
+
+            // Act
+
+            APIGatewayProxyResponse result = await sut.HandleRequestAsync(dummyRequestEvent, context);
+
+            // Assert
+
+            Assert.Equal((int)HttpStatusCode.BadRequest, result.StatusCode);
         }
     }
 }

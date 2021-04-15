@@ -17,9 +17,15 @@ namespace Import.Tests
         {
             // Arrange
 
+            const string vin = "VIN";
+
+            var fakeValidateVIN = A.Fake<IValidateVIN>();
+            A.CallTo(() => fakeValidateVIN.IsValid(vin)).Returns(true);
+
             var fakeVehicleDataService = A.Fake<IVehicleDataService>();
 
             IServiceProvider sp = new ServiceCollection()
+                .AddSingleton(fakeValidateVIN)
                 .AddSingleton(fakeVehicleDataService)
                 .BuildServiceProvider();
 
@@ -28,18 +34,18 @@ namespace Import.Tests
 
             APIGatewayProxyRequest dummyRequestEvent = new APIGatewayProxyRequest
             {
-                Body = JsonConvert.SerializeObject(new ImportRequest { CustomerId = 1, VIN = "ABCD" })
+                Body = JsonConvert.SerializeObject(new ImportRequest { CustomerId = 1, VIN = vin })
             };
 
             var sut = new ImportHandler(sp);
 
             // Act
 
-            APIGatewayProxyResponse result = await sut.HandleRequestAsync(dummyRequestEvent, context);
+            APIGatewayProxyResponse response = await sut.HandleRequestAsync(dummyRequestEvent, context);
 
             // Assert
 
-            Assert.Equal((int)HttpStatusCode.OK, result.StatusCode);
+            Assert.Equal((int)HttpStatusCode.OK, response.StatusCode);
         }
 
         [Fact]
@@ -47,17 +53,21 @@ namespace Import.Tests
         {
             // Arrange
 
+            const int expectedCustomerId = 1;
+            const string expectedVIN = "VIN";
+
+            var fakeValidateVIN = A.Fake<IValidateVIN>();
+            A.CallTo(() => fakeValidateVIN.IsValid(expectedVIN)).Returns(true);
+
             var fakeVehicleDataService = A.Fake<IVehicleDataService>();
 
             IServiceProvider sp = new ServiceCollection()
+                .AddSingleton(fakeValidateVIN)
                 .AddSingleton(fakeVehicleDataService)
                 .BuildServiceProvider();
 
             var context = A.Fake<ILambdaContext>();
             A.CallTo(() => context.Logger).Returns(A.Fake<ILambdaLogger>());
-
-            const int expectedCustomerId = 1;
-            const string expectedVIN = "VIN";
 
             var importRequest = new ImportRequest { CustomerId = expectedCustomerId, VIN = expectedVIN };
 
@@ -75,6 +85,44 @@ namespace Import.Tests
             // Assert
 
             A.CallTo(() => fakeVehicleDataService.ImportVehicleDataAsync(expectedCustomerId, expectedVIN)).MustHaveHappenedOnceExactly();
+        }
+
+        [Fact]
+        public async Task HandleRequestAsync_VINValidationFails_ReturnsBadRequestResponse()
+        {
+            // Arrange
+
+            const string vin = "VIN";
+
+            var fakeValidateVIN = A.Fake<IValidateVIN>();
+            A.CallTo(() => fakeValidateVIN.IsValid(vin)).Returns(false);
+
+            var fakeVehicleDataService = A.Fake<IVehicleDataService>();
+
+            IServiceProvider sp = new ServiceCollection()
+                .AddSingleton(fakeValidateVIN)
+                .AddSingleton(fakeVehicleDataService)
+                .BuildServiceProvider();
+
+            var context = A.Fake<ILambdaContext>();
+            A.CallTo(() => context.Logger).Returns(A.Fake<ILambdaLogger>());
+
+            var importRequest = new ImportRequest { CustomerId = 1, VIN = vin };
+
+            APIGatewayProxyRequest dummyRequestEvent = new APIGatewayProxyRequest
+            {
+                Body = JsonConvert.SerializeObject(importRequest)
+            };
+
+            var sut = new ImportHandler(sp);
+
+            // Act
+
+            APIGatewayProxyResponse response = await sut.HandleRequestAsync(dummyRequestEvent, context);
+
+            // Assert
+
+            Assert.Equal((int)HttpStatusCode.BadRequest, response.StatusCode);
         }
     }
 }

@@ -35,13 +35,20 @@ namespace Get
 
             string vin = WebUtility.UrlDecode(request.PathParameters["id"]);
 
+            IValidateVIN validateVIN = _sp.GetRequiredService<IValidateVIN>();
+
+            if (!validateVIN.IsValid(vin))
+            {
+                return APIGatewayProxyResponses.BadRequest();
+            }
+
             IVehicleDataService dataService = _sp.GetRequiredService<IVehicleDataService>();
 
             VehicleData data = await dataService.GetVehicleDataAsync(vin);
 
             if (data == null)
             {
-                return APIGatewayProxyResponses.NotFound();
+                return APIGatewayProxyResponses.NotFound(vin);
             }
 
             var body = new ResponseBody
@@ -61,6 +68,7 @@ namespace Get
         {
             services.AddTransient<IVehicleDataService, VehicleDataService>();
             services.AddTransient<IVehicleDataTable, VehicleDataTable>();
+            services.AddTransient<IValidateVIN, VINValidator>();
 
             services.AddSingleton<IDynamoDBContext, DynamoDBContext>(sp => new DynamoDBContext(new AmazonDynamoDBClient()));
         }
